@@ -12,7 +12,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
   if (isAuthRoute) {
-    // Rutas de autenticación: solo el contenido, sin chrome
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-white">
         {children}
@@ -21,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-cyan-50 to-white">
+    <div className="min-h-screen flex flex-col bg-background">
       <SigteHeader />
       <SigteNav />
       <GlobalAlert />

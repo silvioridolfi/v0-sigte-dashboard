@@ -54,7 +54,7 @@ export function SigteNav() {
   })
 
   return (
-    <nav className="border-b bg-card">
+    <nav className="border-b border-slate-200 bg-white shadow-sm">
       <div className="container mx-auto flex h-14 items-center px-4">
         <div className="flex gap-1">
           {navItems.map((item) => {
@@ -66,7 +66,7 @@ export function SigteNav() {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                  isActive ? "bg-pba-cyan text-white" : "text-muted-foreground hover:text-foreground hover:bg-accent",
+                  isActive ? "bg-gradient-to-r from-[#417099] to-[#00AEC3] text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
                 )}
               >
                 <Icon className="h-4 w-4" />
