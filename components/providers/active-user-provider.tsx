@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useState, useEffect } from "react"
 import type { Usuario } from "@/lib/types/database"
+import { createClient } from "@/lib/supabase/client"
 
 type ActiveUserContextType = {
   activeUser: Usuario | null
@@ -14,24 +14,66 @@ type ActiveUserContextType = {
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined)
 
 export function ActiveUserProvider({ children }: { children: React.ReactNode }) {
-  const [activeUser, setActiveUser] = useState<Usuario | null>(null)
+  const [activeUser, setActiveUserState] = useState<Usuario | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load active user from localStorage
-    const storedUser = localStorage.getItem("sigte_active_user")
-    if (storedUser) {
-      try {
-        setActiveUser(JSON.parse(storedUser))
-      } catch (e) {
-        console.error("[v0] Error parsing stored user:", e)
+    const supabase = createClient()
+
+    async function loadUsuarioData(authUserId: string) {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, rol, distrito, genero")
+        .eq("id", authUserId)
+        .single()
+
+      if (!error && data) {
+        const usuario = data as Usuario
+        setActiveUserState(usuario)
+        localStorage.setItem("sigte_active_user", JSON.stringify(usuario))
+        document.cookie = `sigte_active_user=${encodeURIComponent(JSON.stringify(usuario))}; path=/; max-age=31536000; SameSite=Lax`
       }
     }
-    setIsLoading(false)
+
+    async function loadUserFromSession() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await loadUsuarioData(session.user.id)
+      } else {
+        // Fallback al localStorage para compatibilidad mientras se migra
+        const stored = localStorage.getItem("sigte_active_user")
+        if (stored) {
+          try {
+            setActiveUserState(JSON.parse(stored))
+          } catch {
+            // ignorar
+          }
+        }
+      }
+      setIsLoading(false)
+    }
+
+    loadUserFromSession()
+
+    // Escuchar cambios de sesión
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: { user?: { id: string } } | null) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        await loadUsuarioData(session.user.id)
+        setIsLoading(false)
+      } else if (event === "SIGNED_OUT") {
+        setActiveUserState(null)
+        localStorage.removeItem("sigte_active_user")
+        document.cookie = "sigte_active_user=; path=/; max-age=0"
+        document.cookie = "activeUser=; path=/; max-age=0"
+        setIsLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const handleSetActiveUser = (user: Usuario | null) => {
-    setActiveUser(user)
+  const setActiveUser = (user: Usuario | null) => {
+    setActiveUserState(user)
     if (user) {
       localStorage.setItem("sigte_active_user", JSON.stringify(user))
       document.cookie = `sigte_active_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=31536000; SameSite=Lax`
@@ -42,7 +84,7 @@ export function ActiveUserProvider({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <ActiveUserContext.Provider value={{ activeUser, setActiveUser: handleSetActiveUser, isLoading }}>
+    <ActiveUserContext.Provider value={{ activeUser, setActiveUser, isLoading }}>
       {children}
     </ActiveUserContext.Provider>
   )

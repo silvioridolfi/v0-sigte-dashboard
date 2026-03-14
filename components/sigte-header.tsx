@@ -1,4 +1,4 @@
-import { UsuarioSelectorServer } from "./usuario-selector-server"
+import { UserMenu } from "./user-menu"
 
 export function SigteHeader() {
   return (
@@ -10,7 +10,7 @@ export function SigteHeader() {
             Sistema Integral de Gestión Territorial Educativa
           </p>
         </div>
-        <UsuarioSelectorServer />
+        <UserMenu />
       </div>
     </header>
   )
