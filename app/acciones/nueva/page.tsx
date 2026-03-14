@@ -1,7 +1,7 @@
 'use client';
 
 import FormNuevaAccion from '@/components/acciones/form-nueva-accion';
-import PageHeader from '@/components/ui/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function NuevaAccionPage() {
   return (

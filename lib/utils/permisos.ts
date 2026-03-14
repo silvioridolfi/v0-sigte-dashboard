@@ -1,5 +1,3 @@
-"use server"
-
 import type { Usuario } from "@/lib/types/database"
 
 export type Rol = "FED" | "CED" | "ADMIN"

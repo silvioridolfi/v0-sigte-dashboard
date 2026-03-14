@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { createAccion } from '@/lib/actions/acciones';
+import { crearAccion } from '@/lib/actions/acciones';
 import { useActiveUser } from '@/lib/hooks/use-active-user';
 
 export default function FormNuevaAccion() {
@@ -28,11 +28,12 @@ export default function FormNuevaAccion() {
     setError(null);
 
     try {
-      await createAccion({
+      await crearAccion({
+        visita_id: '',
+        usuario_id: activeUser.id,
         tipo: formData.tipo,
         descripcion: formData.descripcion,
         fecha: formData.fecha,
-        usuario_id: activeUser.id,
       });
 
       router.push('/acciones');

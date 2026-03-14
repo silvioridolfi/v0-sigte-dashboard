@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { getHorariosUsuario } from '@/lib/actions/horarios';
-import PageHeader from '@/components/ui/page-header';
+import { getHorarioUsuario } from '@/lib/actions/horarios';
+import { PageHeader } from '@/components/ui/page-header';
 import HorarioForm from '@/components/horarios/horario-form';
 import { useActiveUser } from '@/lib/hooks/use-active-user';
 
@@ -25,7 +25,7 @@ export default function HorariosPage() {
       if (!activeUser) return;
       
       try {
-        const data = await getHorariosUsuario(activeUser.id);
+        const { horarios: data } = await getHorarioUsuario(activeUser.id);
         setHorarios(data);
       } catch (error) {
         console.error('Error loading horarios:', error);
@@ -40,7 +40,7 @@ export default function HorariosPage() {
   const handleHorarioSaved = async () => {
     if (!activeUser) return;
     try {
-      const data = await getHorariosUsuario(activeUser.id);
+      const { horarios: data } = await getHorarioUsuario(activeUser.id);
       setHorarios(data);
     } catch (error) {
       console.error('Error refreshing horarios:', error);

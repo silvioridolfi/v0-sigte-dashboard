@@ -2,7 +2,7 @@ export type Usuario = {
   id: string
   nombre: string
   email: string
-  rol: "FED" | "CED"
+  rol: "FED" | "CED" | "ADMIN"
   distrito: string
   genero: "M" | "F" | null
 }

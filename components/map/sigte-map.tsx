@@ -6,7 +6,7 @@ interface SigteMapProps {
   lat: number
   lon: number
   nombre: string
-  altura?: string | number
+  altura?: string
 }
 
 export function SigteMap({ lat, lon, nombre, altura = "h-64" }: SigteMapProps) {
@@ -16,6 +16,7 @@ export function SigteMap({ lat, lon, nombre, altura = "h-64" }: SigteMapProps) {
       if (typeof window === "undefined") return
 
       const L = (await import("leaflet")).default
+      // @ts-ignore — leaflet CSS no tiene tipos pero se carga correctamente en runtime
       await import("leaflet/dist/leaflet.css")
 
       // Fix default icon issue with Leaflet + Next.js

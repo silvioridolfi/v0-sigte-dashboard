@@ -93,9 +93,9 @@ export function EstablecimientoDetailDrawer({
         const { success } = await updateContacto(establecimiento.cue, {
           nombre: contactoNombre,
           apellido: contactoApellido,
-          cargo: contactoCargo || null,
-          telefono: contactoTelefono || null,
-          correo: contactoCorreo || null,
+          cargo: contactoCargo || undefined,
+          telefono: contactoTelefono || undefined,
+          correo: contactoCorreo || undefined,
         })
         contactoSuccess = success
       } else {

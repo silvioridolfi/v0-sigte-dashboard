@@ -4,7 +4,7 @@ import React from "react"
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { createOrUpdateHorario } from '@/lib/actions/horarios';
+import { guardarHorario } from '@/lib/actions/horarios';
 import { useActiveUser } from '@/lib/hooks/use-active-user';
 
 const DIAS_SEMANA = [
@@ -37,7 +37,7 @@ export default function HorarioForm({ onSaved }: HorarioFormProps) {
     setError(null);
 
     try {
-      await createOrUpdateHorario({
+      await guardarHorario({
         usuario_id: activeUser.id,
         dia_semana: formData.dia_semana,
         hora_inicio: formData.hora_inicio,

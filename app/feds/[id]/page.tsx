@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { getFedProfile, getAccionesByUsuario } from '@/lib/actions/feds';
-import PageHeader from '@/components/ui/page-header';
+import { getFEDPerfil } from '@/lib/actions/feds';
+import { getAccionesPorUsuario } from '@/lib/actions/acciones';
+import { PageHeader } from '@/components/ui/page-header';
 import { useActiveUser } from '@/lib/hooks/use-active-user';
-import { canViewFeds } from '@/lib/utils/permisos';
 
 export default function FedDetailPage() {
   const params = useParams();
@@ -19,11 +19,11 @@ export default function FedDetailPage() {
 
   useEffect(() => {
     const loadFedProfile = async () => {
-      if (!activeUser || !canViewFeds(activeUser.rol)) return;
+      if (!activeUser || activeUser.rol === 'FED') return;
       
       try {
-        const fedData = await getFedProfile(fedId);
-        const accionesData = await getAccionesByUsuario(fedId);
+        const { perfil: fedData } = await getFEDPerfil(fedId);
+        const { acciones: accionesData } = await getAccionesPorUsuario(fedId);
         
         setFed(fedData);
         setAcciones(accionesData);
@@ -37,7 +37,7 @@ export default function FedDetailPage() {
     loadFedProfile();
   }, [activeUser, fedId]);
 
-  if (!activeUser || !canViewFeds(activeUser.rol)) {
+  if (!activeUser || activeUser.rol === 'FED') {
     return (
       <main className="flex-1 p-6">
         <div className="text-center text-gray-500">

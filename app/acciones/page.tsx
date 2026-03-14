@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Filter, Calendar } from 'lucide-react';
-import { getAccionesByUsuario } from '@/lib/actions/acciones';
+import { getAccionesPorUsuario } from '@/lib/actions/acciones';
 import { useActiveUser } from '@/lib/hooks/use-active-user';
-import PageHeader from '@/components/ui/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 
-type Accion = Awaited<ReturnType<typeof getAccionesByUsuario>>[0];
+type Accion = Awaited<ReturnType<typeof getAccionesPorUsuario>>["acciones"][number];
 
 export default function AccionesPage() {
   const { activeUser } = useActiveUser();
@@ -21,7 +21,7 @@ export default function AccionesPage() {
     const loadAcciones = async () => {
       if (!activeUser) return;
       try {
-        const data = await getAccionesByUsuario(activeUser.id);
+        const { acciones: data } = await getAccionesPorUsuario(activeUser.id);
         setAcciones(data);
       } catch (error) {
         console.error('Error loading acciones:', error);

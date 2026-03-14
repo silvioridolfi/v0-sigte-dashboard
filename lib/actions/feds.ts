@@ -152,8 +152,9 @@ export async function getActividadMensualFED(usuarioId: string, meses: number = 
   const actividadPorMes: Record<string, ActividadMensual> = {}
 
   visitas?.forEach((v) => {
-    if (v.visita?.fecha_inicio) {
-      const mes = v.visita.fecha_inicio.substring(0, 7)
+    const visita = Array.isArray(v.visita) ? v.visita[0] : v.visita
+    if (visita?.fecha_inicio) {
+      const mes = (visita.fecha_inicio as string).substring(0, 7)
       if (!actividadPorMes[mes]) {
         actividadPorMes[mes] = { mes, visitas: 0, acciones_tecnicas: 0, acciones_pedagogicas: 0 }
       }

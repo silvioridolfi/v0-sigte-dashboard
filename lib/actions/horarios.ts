@@ -17,12 +17,6 @@ export type Horario = {
   }
 }
 
-const DIAS_SEMANA = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
-
-export function getDiaSemanaLabel(dia: number): string {
-  return DIAS_SEMANA[dia] || ""
-}
-
 export async function getHorarioUsuario(usuarioId: string) {
   const supabase = await createClient()
 
