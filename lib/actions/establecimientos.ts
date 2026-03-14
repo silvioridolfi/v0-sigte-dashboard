@@ -24,18 +24,16 @@ export async function buscarEstablecimientos(query: string, limit = 20, offset =
   else if (/^\d{6}$/.test(trimmed)) {
     searchQuery = searchQuery.eq("predio", Number.parseInt(trimmed))
   } else if (/^\d{1,3}$/.test(trimmed)) {
-    const num = trimmed
-    // Buscar número como token completo: " N° 5 ", "N° 5,", etc.
+    // Buscar número como token — evitamos N° y Nº que rompen el parser de PostgREST
     searchQuery = searchQuery.or(
-      `nombre.ilike.% ${num} %,nombre.ilike.%N° ${num} %,nombre.ilike.%N° ${num},%,nombre.ilike.%Nº ${num} %,nombre.ilike.%Nº ${num},%`,
+      `nombre.ilike.% ${trimmed} %,nombre.ilike.% ${trimmed},nombre.ilike.${trimmed} %`
     )
   } else if (/^(primaria|secundaria|jardin|tecnica|especial|agraria)\s+\d{1,3}$/i.test(trimmed)) {
     const [tipo, num] = trimmed.toLowerCase().split(/\s+/)
-    // Buscar tipo en nombre Y número exacto
     searchQuery = searchQuery
       .ilike("nombre", `%${tipo}%`)
       .or(
-        `nombre.ilike.% ${num} %,nombre.ilike.%N° ${num} %,nombre.ilike.%N° ${num},%,nombre.ilike.%Nº ${num} %,nombre.ilike.%Nº ${num},%`,
+        `nombre.ilike.% ${num} %,nombre.ilike.% ${num},nombre.ilike.${num} %`
       )
   }
   // Text search - normalizado
