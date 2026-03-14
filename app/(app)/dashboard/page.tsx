@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { School, MapPin, UsersIcon, TrendingUp } from "lucide-react"
+import { School, MapPin, UsersIcon, TrendingUp, Calendar } from "lucide-react"
 import { getKPIsGlobales } from "@/lib/actions/dashboard"
 import { KPIsPersonalesSection } from "@/components/dashboard/kpis-personales-section"
 import { getJefaturaDistrital, getJefaturaRegional, getKPIsPorDistrito } from "@/lib/actions/organismos"
@@ -12,9 +12,7 @@ import { cookies } from "next/headers"
 async function getActiveUserFromCookies() {
   const cookieStore = await cookies()
   const activeUserCookie = cookieStore.get("activeUser")
-
   if (!activeUserCookie) return null
-
   try {
     return JSON.parse(activeUserCookie.value)
   } catch {
@@ -39,7 +37,6 @@ export default async function DashboardPage() {
   if (isFED && userDistricts.length > 0) {
     const { jefatura } = await getJefaturaDistrital(userDistricts)
     jefaturaDistrital = jefatura
-
     const { kpis } = await getKPIsPorDistrito(userDistricts)
     kpisDistrito = kpis
   } else if (isCED) {
@@ -50,116 +47,99 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-pba-blue mb-2">Dashboard Principal</h1>
-        <p className="text-muted-foreground">Sistema Integral de Gestión Territorial Educativa</p>
+        <h1 className="text-3xl font-bold text-[#417099] mb-1">Dashboard Principal</h1>
+        <p className="text-sm text-slate-500">Sistema Integral de Gestión Territorial Educativa</p>
       </div>
 
       {isCED && jefaturaRegional && <JefaturaCard jefatura={jefaturaRegional} tipo="Regional" />}
-
       {isFED && jefaturaDistrital && <JefaturaCard jefatura={jefaturaDistrital} tipo="Distrital" />}
-
       {isFED && kpisDistrito && <DistritoKPIs kpis={kpisDistrito} distritos={userDistricts} />}
 
       {(isCED || isRegional) && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border-l-4 border-l-pba-blue rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Escuelas</CardTitle>
-              <School className="h-5 w-5 text-pba-blue" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-pba-blue">{totalEscuelas.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">Establecimientos educativos</p>
-            </CardContent>
-          </Card>
+        <div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-[#417099]">Métricas Generales</h2>
+            <p className="text-sm text-slate-500">Resumen estadístico del sistema</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="relative overflow-hidden border border-slate-200/60 shadow-md hover:shadow-lg transition-shadow bg-white">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00AEC3] to-[#417099]" />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5">
+                <CardTitle className="text-sm font-medium text-slate-600">Total Escuelas</CardTitle>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00AEC3]/10">
+                  <School className="h-4 w-4 text-[#00AEC3]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-[#417099]">{totalEscuelas.toLocaleString()}</div>
+                <p className="text-xs text-slate-500 mt-1">Establecimientos educativos</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-l-4 border-l-pba-cyan rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Distritos</CardTitle>
-              <MapPin className="h-5 w-5 text-pba-cyan" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-pba-cyan">{totalDistritos}</div>
-              <p className="text-xs text-muted-foreground mt-1">Distritos educativos</p>
-            </CardContent>
-          </Card>
+            <Card className="relative overflow-hidden border border-slate-200/60 shadow-md hover:shadow-lg transition-shadow bg-white">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#417099] to-[#00AEC3]" />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5">
+                <CardTitle className="text-sm font-medium text-slate-600">Total Distritos</CardTitle>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#417099]/10">
+                  <MapPin className="h-4 w-4 text-[#417099]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-[#00AEC3]">{totalDistritos}</div>
+                <p className="text-xs text-slate-500 mt-1">Distritos educativos</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-l-4 border-l-pba-blue rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Matrícula Total</CardTitle>
-              <UsersIcon className="h-5 w-5 text-pba-blue" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-pba-blue">{totalMatricula.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">Estudiantes en el sistema</p>
-            </CardContent>
-          </Card>
+            <Card className="relative overflow-hidden border border-slate-200/60 shadow-md hover:shadow-lg transition-shadow bg-white">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e81f76] to-[#417099]" />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5">
+                <CardTitle className="text-sm font-medium text-slate-600">Matrícula Total</CardTitle>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e81f76]/10">
+                  <UsersIcon className="h-4 w-4 text-[#e81f76]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-[#e81f76]">{totalMatricula.toLocaleString()}</div>
+                <p className="text-xs text-slate-500 mt-1">Estudiantes en el sistema</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
       <KPIsPersonalesSection />
 
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-pba-blue">Accesos Rápidos</CardTitle>
-          <CardDescription>Navega a las secciones principales del sistema</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <a
-            href="/calendario"
-            className="flex items-center gap-3 p-4 rounded-lg border hover:border-pba-cyan hover:shadow-md transition-all"
-          >
-            <div className="h-10 w-10 rounded-full bg-pba-cyan/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-pba-cyan" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Calendario</h3>
-              <p className="text-sm text-muted-foreground">Ver visitas y reuniones</p>
-            </div>
-          </a>
-
-          <a
-            href="/establecimientos"
-            className="flex items-center gap-3 p-4 rounded-lg border hover:border-pba-cyan hover:shadow-md transition-all"
-          >
-            <div className="h-10 w-10 rounded-full bg-pba-cyan/10 flex items-center justify-center">
-              <School className="h-5 w-5 text-pba-cyan" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Establecimientos</h3>
-              <p className="text-sm text-muted-foreground">Buscar y editar escuelas</p>
-            </div>
-          </a>
-
-          {canSeeReuniones && (
-            <a
-              href="/reuniones"
-              className="flex items-center gap-3 p-4 rounded-lg border hover:border-pba-cyan hover:shadow-md transition-all"
-            >
-              <div className="h-10 w-10 rounded-full bg-pba-cyan/10 flex items-center justify-center">
-                <UsersIcon className="h-5 w-5 text-pba-cyan" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Reuniones</h3>
-                <p className="text-sm text-muted-foreground">Gestionar reuniones</p>
-              </div>
-            </a>
-          )}
-
-          <a
-            href="/metricas"
-            className="flex items-center gap-3 p-4 rounded-lg border hover:border-pba-cyan hover:shadow-md transition-all"
-          >
-            <div className="h-10 w-10 rounded-full bg-pba-cyan/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-pba-cyan" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Métricas</h3>
-              <p className="text-sm text-muted-foreground">Estadísticas de trabajo</p>
-            </div>
-          </a>
-        </CardContent>
-      </Card>
+      <div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-[#417099]">Accesos Rápidos</h2>
+          <p className="text-sm text-slate-500">Navega a las secciones principales del sistema</p>
+        </div>
+        <Card className="relative overflow-hidden border border-slate-200/60 shadow-md bg-white">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00AEC3] to-[#e81f76]" />
+          <CardContent className="pt-6 grid gap-3 md:grid-cols-2">
+            {[
+              { href: "/calendario", icon: Calendar, label: "Calendario", desc: "Ver visitas y reuniones" },
+              { href: "/establecimientos", icon: School, label: "Establecimientos", desc: "Buscar y editar escuelas" },
+              ...(canSeeReuniones ? [{ href: "/reuniones", icon: UsersIcon, label: "Reuniones", desc: "Gestionar reuniones" }] : []),
+              { href: "/metricas", icon: TrendingUp, label: "Métricas", desc: "Estadísticas de trabajo" },
+            ].map(({ href, icon: Icon, label, desc }) => (
+              <a
+                key={href}
+                href={href}
+                className="flex items-center gap-3 p-4 rounded-lg border border-slate-200 hover:border-[#00AEC3] hover:shadow-md transition-all bg-slate-50/50"
+              >
+                <div className="h-10 w-10 rounded-full bg-[#00AEC3]/10 flex items-center justify-center shrink-0">
+                  <Icon className="h-5 w-5 text-[#00AEC3]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800">{label}</h3>
+                  <p className="text-sm text-slate-500">{desc}</p>
+                </div>
+              </a>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

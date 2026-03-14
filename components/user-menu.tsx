@@ -87,7 +87,7 @@ export function UserMenu() {
             Admin
           </Badge>
           <Select onValueChange={handleImpersonate}>
-            <SelectTrigger className="w-[190px] h-8 text-xs border-amber-300 focus:ring-amber-400">
+            <SelectTrigger className="w-[190px] h-8 text-xs bg-white/10 border-white/30 text-white focus:ring-white/50">
               <SelectValue placeholder="Probar como…" />
             </SelectTrigger>
             <SelectContent>
@@ -104,10 +104,10 @@ export function UserMenu() {
       {/* Menú del usuario logueado */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2 max-w-[220px]">
-            <User className="h-4 w-4 text-pba-cyan shrink-0" />
+          <Button variant="outline" size="sm" className="gap-2 max-w-[220px] bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white">
+            <User className="h-4 w-4 text-white/80 shrink-0" />
             <span className="truncate text-sm font-medium">{activeUser.nombre}</span>
-            <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+            <ChevronDown className="h-3 w-3 shrink-0 text-white/60" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
