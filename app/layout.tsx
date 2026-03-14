@@ -7,6 +7,7 @@ import { ActiveUserProvider } from "@/components/providers/active-user-provider"
 import { SigteHeader } from "@/components/sigte-header"
 import { SigteNav } from "@/components/sigte-nav"
 import { GlobalAlert } from "@/components/notificaciones/global-alert"
+import { AppShell } from "@/components/app-shell"
 import "./globals.css"
 
 const encodeSans = Encode_Sans({
@@ -30,12 +31,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${encodeSans.variable} font-sans antialiased`}>
         <ActiveUserProvider>
-          <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-cyan-50 to-white">
-            <SigteHeader />
-            <SigteNav />
-            <GlobalAlert />
-            <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
-          </div>
+          <AppShell>{children}</AppShell>
           <Toaster />
         </ActiveUserProvider>
         <Analytics />
