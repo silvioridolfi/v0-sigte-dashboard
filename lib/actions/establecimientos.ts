@@ -24,17 +24,31 @@ export async function buscarEstablecimientos(query: string, limit = 20, offset =
   else if (/^\d{6}$/.test(trimmed)) {
     searchQuery = searchQuery.eq("predio", Number.parseInt(trimmed))
   } else if (/^\d{1,3}$/.test(trimmed)) {
-    // Buscar número como token — evitamos N° y Nº que rompen el parser de PostgREST
-    searchQuery = searchQuery.or(
-      `nombre.ilike.% ${trimmed} %,nombre.ilike.% ${trimmed},nombre.ilike.${trimmed} %`
-    )
+    // Número exacto: usar RPC con regex para no matchear parciales (21 != 121)
+    const { data: rpcData, error: rpcError, count: rpcCount } = await supabase
+      .rpc("buscar_por_numero_exacto", {
+        p_numero: trimmed,
+        p_distritos: filterDistritos ?? null,
+      })
+    if (rpcError) {
+      return { establecimientos: [], total: 0, error: rpcError.message }
+    }
+    const sliced = (rpcData || []).slice(offset, offset + limit)
+    return { establecimientos: sliced, total: rpcData?.length || 0, error: null }
   } else if (/^(primaria|secundaria|jardin|tecnica|especial|agraria)\s+\d{1,3}$/i.test(trimmed)) {
+    // Nivel + número exacto: usar RPC con regex
     const [tipo, num] = trimmed.toLowerCase().split(/\s+/)
-    searchQuery = searchQuery
-      .ilike("nombre", `%${tipo}%`)
-      .or(
-        `nombre.ilike.% ${num} %,nombre.ilike.% ${num},nombre.ilike.${num} %`
-      )
+    const { data: rpcData, error: rpcError } = await supabase
+      .rpc("buscar_por_nivel_numero", {
+        p_nivel: tipo,
+        p_numero: num,
+        p_distritos: filterDistritos ?? null,
+      })
+    if (rpcError) {
+      return { establecimientos: [], total: 0, error: rpcError.message }
+    }
+    const sliced = (rpcData || []).slice(offset, offset + limit)
+    return { establecimientos: sliced, total: rpcData?.length || 0, error: null }
   }
   // Text search - normalizado
   else {
