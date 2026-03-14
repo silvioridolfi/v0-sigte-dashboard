@@ -6,12 +6,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rutas públicas — no requieren autenticación
-  const PUBLIC_ROUTES = ["/login"]
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  if (pathname === "/login") {
     return NextResponse.next()
   }
 
-  // Crear cliente de Supabase con las cookies del request
   let response = NextResponse.next({
     request: { headers: request.headers },
   })
@@ -39,11 +37,11 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Verificar sesión
-  const { data: { session } } = await supabase.auth.getSession()
+  // Usar getUser() en lugar de getSession() — verifica el token en el servidor
+  // y refresca la sesión automáticamente si es necesario
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
-    // Sin sesión → redirigir a /login
+  if (!user) {
     const loginUrl = new URL("/login", request.url)
     return NextResponse.redirect(loginUrl)
   }
@@ -53,13 +51,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Aplicar a todas las rutas excepto:
-     * - _next/static (archivos estáticos)
-     * - _next/image (optimización de imágenes)
-     * - favicon, íconos
-     * - api routes internas de Next.js
-     */
     "/((?!_next/static|_next/image|favicon|icon|apple-icon|.*\\.png$|.*\\.svg$|.*\\.ico$).*)",
   ],
 }
