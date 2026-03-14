@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { loginAction } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, LogIn } from "lucide-react"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -21,28 +19,21 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const result = await loginAction(email, password)
 
-    if (authError) {
-      setError("Email o contraseña incorrectos")
+    // Si llegamos acá sin redirect, hubo error
+    if (result?.error) {
+      setError(result.error)
       setLoading(false)
-      return
     }
-
-    router.push("/dashboard")
-    router.refresh()
+    // Si no hay error, loginAction hace redirect() al servidor → no hay return
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-white p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Header institucional */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-pba-blue">SIGTE</h1>
+          <h1 className="text-4xl font-bold text-[#417099]">SIGTE</h1>
           <p className="text-sm text-muted-foreground">
             Sistema Integral de Gestión Territorial Educativa
           </p>
@@ -51,13 +42,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Card de login */}
-        <Card className="rounded-2xl shadow-lg border-t-4 border-t-pba-cyan">
+        <Card className="rounded-2xl shadow-lg border-t-4 border-t-[#00AEC3]">
           <CardHeader>
-            <CardTitle className="text-pba-blue">Iniciar sesión</CardTitle>
-            <CardDescription>
-              Ingresá con tu email institucional
-            </CardDescription>
+            <CardTitle className="text-[#417099]">Iniciar sesión</CardTitle>
+            <CardDescription>Ingresá con tu email institucional</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -96,7 +84,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-pba-cyan hover:bg-pba-cyan/90"
+                className="w-full bg-[#00AEC3] hover:bg-[#0098ad]"
               >
                 {loading ? (
                   <>
