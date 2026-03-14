@@ -24,10 +24,26 @@ export async function loginAction(email: string, password: string) {
     }
   )
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) {
+  if (error || !data.user) {
     return { error: "Email o contraseña incorrectos" }
+  }
+
+  // Cargar datos del usuario desde la tabla usuarios
+  const { data: usuarioData } = await supabase
+    .from("usuarios")
+    .select("id, nombre, email, rol, distrito, genero")
+    .eq("id", data.user.id)
+    .single()
+
+  if (usuarioData) {
+    // Escribir cookie sigte_active_user para que los server components la lean
+    cookieStore.set(
+      "sigte_active_user",
+      encodeURIComponent(JSON.stringify(usuarioData)),
+      { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" }
+    )
   }
 
   redirect("/dashboard")
