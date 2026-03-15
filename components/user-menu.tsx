@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { logoutAction } from "@/app/actions/auth"
 import { createClient } from "@/lib/supabase/client"
 import { useActiveUser } from "@/components/providers/active-user-provider"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,6 @@ import type { Usuario } from "@/lib/types/database"
 
 export function UserMenu() {
   const { activeUser, setActiveUser, isLoading } = useActiveUser()
-  const router = useRouter()
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
 
   // Cargar todos los usuarios solo si es ADMIN (para impersonar)
@@ -46,10 +45,9 @@ export function UserMenu() {
   }, [activeUser?.rol])
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/login")
-    router.refresh()
+    // Limpiar estado cliente antes del redirect del servidor
+    setActiveUser(null)
+    await logoutAction()
   }
 
   const handleImpersonate = (userId: string) => {
