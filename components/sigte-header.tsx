@@ -1,4 +1,4 @@
-import { UsuarioSelectorServer } from "./usuario-selector-server"
+import { UsuarioSelectorClient } from "./usuario-selector-client"
 
 export function SigteHeader() {
   return (
@@ -15,7 +15,7 @@ export function SigteHeader() {
             </p>
           </div>
         </div>
-        <UsuarioSelectorServer />
+        <UsuarioSelectorClient />
       </div>
     </header>
   )
