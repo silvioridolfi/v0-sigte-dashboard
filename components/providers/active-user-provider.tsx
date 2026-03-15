@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect, useRef } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import type { Usuario } from "@/lib/types/database"
 import { createClient } from "@/lib/supabase/client"
 
 type ActiveUserContextType = {
   activeUser: Usuario | null
-  sessionUser: Usuario | null   // usuario real de la sesión
+  sessionUser: Usuario | null
   setActiveUser: (user: Usuario | null) => void
   isLoading: boolean
 }
@@ -18,53 +18,55 @@ export function ActiveUserProvider({ children }: { children: React.ReactNode }) 
   const [sessionUser, setSessionUser] = useState<Usuario | null>(null)
   const [activeUser, setActiveUserState] = useState<Usuario | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const initialized = useRef(false)
 
   useEffect(() => {
-    if (initialized.current) return
-    initialized.current = true
+    const supabase = createClient()
 
-    const timeout = setTimeout(() => setIsLoading(false), 5000)
-
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/me")
-        if (res.ok) {
-          const data = await res.json()
-          if (data) {
-            setSessionUser(data as Usuario)
-            setActiveUserState(data as Usuario)
-          }
-        }
-      } catch (e) {
-        console.error("[sigte] Error llamando /api/me:", e)
-      } finally {
-        clearTimeout(timeout)
-        setIsLoading(false)
-      }
+    async function fetchUsuario(userId: string): Promise<Usuario | null> {
+      const { data } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, rol, distrito, genero")
+        .eq("id", userId)
+        .single()
+      return data as Usuario | null
     }
 
-    loadUser()
+    // Inicializar con la sesión actual
+    supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: { user: { id: string } } | null } }) => {
+      if (session?.user) {
+        const usuario = await fetchUsuario(session.user.id)
+        if (usuario) {
+          setSessionUser(usuario)
+          setActiveUserState(usuario)
+        }
+      }
+      setIsLoading(false)
+    })
 
-    // Escuchar logout
-    const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
-      if (event === "SIGNED_OUT") {
+    // Escuchar cambios de sesión
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: { user?: { id: string } } | null) => {
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
+        const usuario = await fetchUsuario(session.user.id)
+        if (usuario) {
+          setSessionUser(usuario)
+          setActiveUserState((prev) => {
+            // Solo actualizar activeUser si no hay impersonación activa
+            if (!prev || prev.id === session.user!.id) return usuario
+            return prev
+          })
+        }
+      } else if (event === "SIGNED_OUT") {
         setSessionUser(null)
         setActiveUserState(null)
         setIsLoading(false)
       }
     })
 
-    return () => {
-      clearTimeout(timeout)
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
-  // setActiveUser: cambia el usuario activo para impersonación
-  // sin tocar sessionUser (el real)
   const setActiveUser = (user: Usuario | null) => {
+    // null = volver al usuario real de la sesión
     setActiveUserState(user ?? sessionUser)
   }
 
@@ -77,8 +79,6 @@ export function ActiveUserProvider({ children }: { children: React.ReactNode }) 
 
 export function useActiveUser() {
   const context = useContext(ActiveUserContext)
-  if (context === undefined) {
-    throw new Error("useActiveUser must be used within ActiveUserProvider")
-  }
+  if (context === undefined) throw new Error("useActiveUser must be used within ActiveUserProvider")
   return context
 }

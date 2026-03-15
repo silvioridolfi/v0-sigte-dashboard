@@ -5,8 +5,7 @@ import type { NextRequest } from "next/server"
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Rutas públicas — no requieren autenticación
-  if (pathname === "/login" || pathname.startsWith("/api/")) {
+  if (pathname === "/login" || pathname.startsWith("/api/") || pathname.startsWith("/_next/")) {
     return NextResponse.next()
   }
 
@@ -19,38 +18,26 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
+        getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request: { headers: request.headers } })
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     }
   )
 
-  // Usar getUser() en lugar de getSession() — verifica el token en el servidor
-  // y refresca la sesión automáticamente si es necesario
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession lee la cookie local — rápido, no hace llamada al servidor
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) {
-    const loginUrl = new URL("/login", request.url)
-    return NextResponse.redirect(loginUrl)
+  if (!session) {
+    return NextResponse.redirect(new URL("/login", request.url))
   }
 
   return response
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon|icon|apple-icon|.*\\.png$|.*\\.svg$|.*\\.ico$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon|icon|apple-icon|.*\\.png$|.*\\.svg$|.*\\.ico$).*)"],
 }
