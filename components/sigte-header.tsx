@@ -1,4 +1,4 @@
-import { UserMenu } from "./user-menu"
+import { UsuarioSelectorServer } from "./usuario-selector-server"
 
 export function SigteHeader() {
   return (
@@ -15,7 +15,7 @@ export function SigteHeader() {
             </p>
           </div>
         </div>
-        <UserMenu />
+        <UsuarioSelectorServer />
       </div>
     </header>
   )
