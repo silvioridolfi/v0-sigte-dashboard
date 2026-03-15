@@ -13,91 +13,42 @@ type ActiveUserContextType = {
 
 const ActiveUserContext = createContext<ActiveUserContextType | undefined>(undefined)
 
-function getCookieValue(name: string): string | null {
-  if (typeof document === "undefined") return null
-  const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"))
-  return match ? decodeURIComponent(match[1]) : null
-}
-
 export function ActiveUserProvider({ children }: { children: React.ReactNode }) {
   const [activeUser, setActiveUserState] = useState<Usuario | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const timeout = setTimeout(() => setIsLoading(false), 3000)
+    const timeout = setTimeout(() => setIsLoading(false), 5000)
 
     async function loadUser() {
       try {
-        // 1. Intentar leer sigte_active_user de la cookie (escrita por el server action)
-        const cookieVal = getCookieValue("sigte_active_user")
-        if (cookieVal) {
-          try {
-            const usuario = JSON.parse(cookieVal) as Usuario
-            setActiveUserState(usuario)
-            clearTimeout(timeout)
-            setIsLoading(false)
-            return
-          } catch {
-            // ignorar JSON inválido
-          }
-        }
-
-        // 2. Intentar leer del localStorage (fallback)
-        const stored = localStorage.getItem("sigte_active_user")
-        if (stored) {
-          try {
-            setActiveUserState(JSON.parse(stored))
-            clearTimeout(timeout)
-            setIsLoading(false)
-            return
-          } catch {
-            // ignorar
-          }
-        }
-
-        // 3. Intentar sesión de Supabase directamente
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          const { data } = await supabase
-            .from("usuarios")
-            .select("id, nombre, email, rol, distrito, genero")
-            .eq("id", session.user.id)
-            .single()
+        // Llamar al API route del servidor — lee las cookies HTTP correctamente
+        const res = await fetch("/api/me")
+        if (res.ok) {
+          const data = await res.json()
           if (data) {
             setActiveUserState(data as Usuario)
+            clearTimeout(timeout)
+            setIsLoading(false)
+            return
           }
         }
       } catch (e) {
-        console.error("[sigte] Error cargando usuario:", e)
-      } finally {
-        clearTimeout(timeout)
-        setIsLoading(false)
+        console.error("[sigte] Error llamando /api/me:", e)
       }
+      clearTimeout(timeout)
+      setIsLoading(false)
     }
 
     loadUser()
 
-    // Escuchar cambios de sesión
+    // Escuchar cambios de sesión en el cliente
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: { user?: { id: string } } | null) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        const { data } = await supabase
-          .from("usuarios")
-          .select("id, nombre, email, rol, distrito, genero")
-          .eq("id", session.user.id)
-          .single()
-        if (data) {
-          const usuario = data as Usuario
-          setActiveUserState(usuario)
-          localStorage.setItem("sigte_active_user", JSON.stringify(usuario))
-          document.cookie = `sigte_active_user=${encodeURIComponent(JSON.stringify(usuario))}; path=/; max-age=31536000; SameSite=Lax`
-        }
-        setIsLoading(false)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string) => {
+      if (event === "SIGNED_IN") {
+        await loadUser()
       } else if (event === "SIGNED_OUT") {
         setActiveUserState(null)
-        localStorage.removeItem("sigte_active_user")
-        document.cookie = "sigte_active_user=; path=/; max-age=0"
         setIsLoading(false)
       }
     })
@@ -110,13 +61,6 @@ export function ActiveUserProvider({ children }: { children: React.ReactNode }) 
 
   const setActiveUser = (user: Usuario | null) => {
     setActiveUserState(user)
-    if (user) {
-      localStorage.setItem("sigte_active_user", JSON.stringify(user))
-      document.cookie = `sigte_active_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=31536000; SameSite=Lax`
-    } else {
-      localStorage.removeItem("sigte_active_user")
-      document.cookie = "sigte_active_user=; path=/; max-age=0"
-    }
   }
 
   return (
